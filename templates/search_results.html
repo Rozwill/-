@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>表单 - 后台管理系统</title>
+<link rel="icon" href="favicon.ico" type="image/ico">
+<meta name="keywords" content="IMDB展示系统">
+<meta name="description" content="基于Bootstrap v3.3.7的后台管理系统的HTML">
+<meta name="author" content="yinqi">
+<link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/materialdesignicons.min.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/style.min.css') }}" rel="stylesheet">
+<style>
+.custom-select {
+    width: 10% !important;
+}
+.custom-input {
+    width: 80% !important;
+}
+</style>
+</head>
+
+<body>
+    <!--End 头部信息-->
+    <main class="lyear-layout-content">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header"><h4>搜索结果</h4></div>
+          <div class="card-body">
+            <!-- 搜索结果 -->
+            <div id="search-results"></div>
+        {% if searched %}
+            <!-- 电影列表 -->
+            <table class="table-bordered table-striped table-hover table-vcenter">
+              <thead>
+                <tr>
+                  <th>排名</th>
+                  <th>电影名称</th>
+                  <th>评分</th>
+                  <th>导演</th>
+                  <th>年份</th>
+                  <th>中文名</th>
+                  <th>核心句</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for movie in results %}
+                <tr>
+                  <td>{{ movie.id }}</td>
+                  <td><a href="{{ movie.电影链接 }}">{{ movie.电影名称 }}</a></td>
+                  <td>{{ movie.电影评分 }}</td>
+                  <td>{{ movie.导演 }}</td>
+                  <td>{{ movie.年份 }}</td>
+                  <td>{{ movie.中文名 }}</td>
+                  <td>{{ movie.核心句 }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <!-- 分页 -->
+            <div class="pagination" style="display: flex">
+    {% if results.has_prev %}
+        <a href="{{ url_for('search', type=type, q=query, page=results.prev_num) }}" style="margin-right: 20px">« Prev</a>
+    {% endif %}
+    {% for page_num in results.iter_pages() %}
+        {% if page_num %}
+            {% if page_num != results.page %}
+                <a href="{{ url_for('search', type=type, q=query, page=page_num) }}" style="margin-right: 20px">{{ page_num }}</a>
+            {% else %}
+                <strong style="margin-right: 20px">{{ page_num }}</strong>
+            {% endif %}
+        {% else %}
+            ...
+        {% endif %}
+    {% endfor %}
+    {% if results.has_next %}
+        <a href="{{ url_for('search', type=type, q=query, page=results.next_num) }}">Next »</a>
+    {% endif %}
+</div>
+        {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+    // 在 search_results.html 中的 <script> 标签中添加以下代码
+document.addEventListener('DOMContentLoaded', function() {
+    // 获取搜索结果
+    function sendSearchRequest() {
+        var query = document.getElementById('search-input').value;
+        var type = document.getElementById('search-type').value;
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '/search?type=' + encodeURIComponent(type) + '&q=' + encodeURIComponent(query), true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                document.getElementById('search-results').innerHTML = xhr.responseText;
+            }
+        };
+        xhr.send();
+    }
+
+    // 为搜索框添加输入事件监听器
+    document.getElementById('search-input').addEventListener('input', sendSearchRequest);
+});
+</script>
+</body>
+</html>

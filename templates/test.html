@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+<head>
+  <meta charset="utf-8">
+</head>
+<body style="height: 100%; margin: 0">
+  <div id="container" style="height: 100%"></div>
+
+  <script type="text/javascript" src="../static/js/jquery.min.js"></script>
+  <script type="text/javascript" src="../static/js/echarts.min.js"></script>
+  <script type="text/javascript">
+    var dom = document.getElementById('container');
+    var myChart = echarts.init(dom, null, {
+      renderer: 'canvas',
+      useDirtyRect: false
+    });
+    var app = {};
+    var option={
+        tooltip: {
+    trigger: 'item',
+    formatter: function(params) {
+      return params.name + ': ' + params.value;
+    }
+  }
+    };
+    myChart.showLoading();
+$.getJSON('../static/js/world.json', function (worldJson) {
+  myChart.hideLoading();
+  echarts.registerMap('World', worldJson);
+  var data = {{ country_counts | tojson | safe }};
+  data.sort(function (a, b) {
+    return a.value - b.value;
+  });
+  const mapOption = {
+      visualMap: {
+          left: 'right',
+          type: 'piecewise',  // 修改这里
+          pieces: [
+              {min: 1, max: 1, color: '#313695', label: '1'},
+              {min: 2, max: 2, color: '#4575b4', label: '2'},
+              {min: 3, max: 3, color: '#74add1', label: '3'},
+              {min: 4, max: 4, color: '#abd9e9', label: '4'},
+              {min: 5, max: 5, color: '#e0f3f8', label: '5'},
+              {min: 6, max: 6, color: '#ffffbf', label: '6'},
+              {min: 8, max: 20, color: '#fee090', label: '8 - 20'},
+              {min: 20, max: 30, color: '#f46d43', label: '20 - 30'},
+              {min: 100, color: '#a50026', label: '100+'}
+          ],
+          text: ['High', 'Low'],
+          calculable: true,
+          borderColor: '#333',  // 添加这一行
+          borderWidth: 1  // 添加这一行
+    },
+
+    series: [
+      {
+        id: 'population',
+        type: 'map',
+        roam: true,
+        map: 'World',
+        animationDurationUpdate: 1000,
+        universalTransition: true,
+        data: data
+      }
+    ]
+  };
+  const barOption = {
+    xAxis: {
+      type: 'value'
+    },
+    yAxis: {
+      type: 'category',
+      axisLabel: {
+        rotate: 30
+      },
+      data: data.map(function (item) {
+        return item.name;
+      })
+    },
+    animationDurationUpdate: 1000,
+    series: {
+      type: 'bar',
+      id: 'population',
+      data: data.map(function (item) {
+        return item.value;
+      }),
+      universalTransition: true
+    }
+  };
+  let currentOption = mapOption;
+  myChart.setOption(mapOption);
+  myChart.on('click', function () {
+    currentOption = currentOption === mapOption ? barOption : mapOption;
+    currentOption.tooltip = {
+    trigger: 'item',
+    formatter: function(params) {
+      return params.name + ': ' + params.value;
+    }
+  };
+    myChart.setOption(currentOption, true);
+  });
+});
+
+    if (option && typeof option === 'object') {
+      myChart.setOption(option);
+    }
+
+    window.addEventListener('resize', myChart.resize);
+  </script>
+
+</body>
+</html>
